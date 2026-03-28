@@ -1,0 +1,36 @@
+# File: /.gitignore
+
+# =========================
+# IntelliJ IDEA Settings
+# =========================
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# =========================
+# VS Code (Just in case)
+# =========================
+.vscode/
+
+# =========================
+# OS Generated Files
+# =========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+
+# =========================
+# Node.js & React (Future-proofing)
+# =========================
+node_modules/
+dist/
+build/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
