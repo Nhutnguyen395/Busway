@@ -5,7 +5,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Table;
 import jakarta.persistence.Entity;
 import org.locationtech.jts.geom.Point;
-
 import java.math.BigDecimal;
 
 @Entity
