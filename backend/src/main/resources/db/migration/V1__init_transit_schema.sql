@@ -12,7 +12,7 @@ CREATE TABLE stops (
     name VARCHAR(50) NOT NULL,
     latitude NUMERIC(9, 6) NOT NULL,
     longitude NUMERIC(9, 6) NOT NULL,
-    geom geometry(Point, 4236)
+    geom geometry(Point, 4326)
 );
 
 CREATE TABLE route_stops (
