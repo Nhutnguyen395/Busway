@@ -5,6 +5,7 @@ import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
 
+// @Embeddable is used to define a class to implement composite primary keys
 @Embeddable
 public class RouteStopId implements Serializable {
     @Column(name = "route_id")
