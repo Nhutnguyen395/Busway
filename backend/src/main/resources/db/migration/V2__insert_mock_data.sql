@@ -1,0 +1,12 @@
+INSERT INTO routes (id, name, description, color_hex, status)
+VALUES ('route_red', 'Red Line Rapid', 'Express transit through downtown', '#FF0000', 'ACTIVE');
+
+INSERT INTO stops (id, name, latitude, longitude, geom) VALUES
+('stop_1', 'Central Station', 33.8000, -117.9000, ST_SetSRID(ST_MakePoint(-117.9000, 33.8000), 4326)),
+('stop_2', 'Arts District', 33.8100, -117.9100, ST_SetSRID(ST_MakePoint(-117.9100, 33.8100), 4326)),
+('stop_3', 'Tech Park', 33.8200, -117.9200, ST_SetSRID(ST_MakePoint(-117.9200, 33.8200), 4326));
+
+INSERT INTO route_stops (route_id, stop_id, stop_order, arrival_offset_min) VALUES
+('route_red', 'stop_1', 1, 0),
+('route_red', 'stop_2', 2, 5),
+('route_red', 'stop_3', 3, 12);
