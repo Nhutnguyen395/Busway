@@ -12,6 +12,7 @@ services:
       - POSTGRES_PASSWORD=password
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./transit-data:/tmp/gtfs-data
 
 volumes:
   postgres_data:
