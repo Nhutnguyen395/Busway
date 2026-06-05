@@ -19,7 +19,7 @@ function lerp(start, end, progress){
 
 async function startSimulation() {
     try {
-        const response = await axios.get('http://localhost:8080/api/v1/transit/routes/route_red');
+        const response = await axios.get('http://localhost:8080/api/v1/transit/routes/43');
         const stops = response.data.stops;
 
         let currentStopIndex = 0;

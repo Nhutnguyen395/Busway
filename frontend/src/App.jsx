@@ -29,7 +29,7 @@ function App() {
     // fetch static route data (Java Backend - port 8080)
     const fetchRouteData = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/v1/transit/routes/route_red')
+        const response = await axios.get('http://localhost:8080/api/v1/transit/routes/43')
         setStops(response.data.stops);
         console.log("Loaded stops from Java:", response.data.stops);
       } catch (error) {
@@ -76,8 +76,8 @@ function App() {
           {stops.map((stop) => (
               <CircleMarker
                   key={stop.stopId}
-                  center={[stop.lat, stop.lon]}
-                  radius={8}
+                  center={[stop.lon, stop.lat]}
+                  radius={5}
                   pathOptions={{ color: 'blue', fillColor: 'blue', fillOpacity: 0.5 }}
               >
                 <Popup>{stop.stopName} (Stop #{stop.stopOrder})</Popup>
@@ -86,7 +86,7 @@ function App() {
 
           {/* Draw the Live Moving Bus (Standard Map Pin) */}
           {busLocation && (
-              <Marker position={[busLocation.lat, busLocation.lon]}>
+              <Marker position={[busLocation.lon, busLocation.lat]}>
                 <Popup>
                   <strong>Bus: {busLocation.busId}</strong><br/>
                   Next Stop: {busLocation.nextStop}
