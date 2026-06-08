@@ -7,7 +7,6 @@ html, body, #root{
     height: 100vh;
     font-family: Arial, san-serif;
 }
-
 .dashboard-header{
     height: 60px;
     background-color: #1a1a1a;
@@ -21,4 +20,45 @@ html, body, #root{
 .map-container {
     height: calc(100vh - 60px);
     width: 100%;
+}
+
+.app-body {
+    display: flex;
+    height: calc(100vh - 60px); /* Fill the screen below the header */
+    width: 100vw;
+}
+
+.control-panel {
+    width: 350px;
+    background-color: #f4f4f9;
+    padding: 20px;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    z-index: 1000; /* Keeps it above the map tiles */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-group label {
+    font-weight: bold;
+    color: #333;
+}
+
+.input-group select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+/* Ensure the map takes up the remaining space */
+.map-container {
+    flex-grow: 1;
+    height: 100%;
 }

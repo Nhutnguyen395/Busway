@@ -1,5 +1,5 @@
 import {useEffect, useState } from 'react';
-import {MapContainer, TileLayer, CircleMarker, Marker, Popup} from 'react-leaflet';
+import {MapContainer, TileLayer, CircleMarker, Marker, Popup, Polyline} from 'react-leaflet';
 import { io } from 'socket.io-client';
 import axios from 'axios';
 import L from 'leaflet';
@@ -16,13 +16,12 @@ L.Icon.Default.mergeOptions({
 });
 
 function App() {
-  // static bus stops from java
   const [stops, setStops] = useState([]);
-
-  // Live bus location from Node.js
   const [busLocation, setBusLocation] = useState(null);
 
-  // Mock data: center of Garden Grove
+  const [startStopId, setStartStopId] = useState("");
+  const [endStopId, setEndStopId] = useState("");
+
   const mapCenter = [33.8100, -117.9100];
 
   useEffect(() => {
@@ -54,6 +53,27 @@ function App() {
     return () => socket.disconnect();
   }, []); // Empty array means this only runs once when the page loads
 
+  const getHighlightedRoute = () => {
+    if (!startStopId || !endStopId || stops.length === 0) return [];
+
+    const startIndex = stops.findIndex(s => s.stopId === startStopId);
+    const endIndex = stops.findIndex(s => s.stopId === endStopId);
+
+    if (startIndex === -1 || endIndex === -1) return [];
+
+    // ensures the array slice works whether they are going North or South
+    const minIndex = Math.min(startIndex, endIndex);
+    const maxIndex = Math.max(startIndex, endIndex);
+
+    // grab only the stops between start and end
+    const routeSegment = stops.slice(minIndex, maxIndex + 1);
+
+    // map them into [lat, lon] format leaflet requires
+    return routeSegment.map(stop => [stop.lon, stop.lat]);
+  };
+
+  const polylinePositions = getHighlightedRoute();
+
   return (
       <div>
         <header className="dashboard-header">
@@ -65,35 +85,83 @@ function App() {
           )}
         </header>
 
-        <MapContainer center={mapCenter} zoom={14} className={'map-container'}>
-          {/* The underlying street map tiles (Free OpenStreetMap data) */}
-          <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+        {/* New Flexbox Layout */}
+        <div className="app-body">
 
-          {/* Draw the Static Bus Stops (Blue Circles) */}
-          {stops.map((stop) => (
-              <CircleMarker
-                  key={stop.stopId}
-                  center={[stop.lon, stop.lat]}
-                  radius={5}
-                  pathOptions={{ color: 'blue', fillColor: 'blue', fillOpacity: 0.5 }}
-              >
-                <Popup>{stop.stopName} (Stop #{stop.stopOrder})</Popup>
-              </CircleMarker>
-          ))}
+          {/* LEFT SIDEBAR: The Control Panel */}
+          <div className="control-panel">
+            <h3>Plan Your Trip</h3>
 
-          {/* Draw the Live Moving Bus (Standard Map Pin) */}
-          {busLocation && (
-              <Marker position={[busLocation.lon, busLocation.lat]}>
-                <Popup>
-                  <strong>Bus: {busLocation.busId}</strong><br/>
-                  Next Stop: {busLocation.nextStop}
-                </Popup>
-              </Marker>
-          )}
-        </MapContainer>
+            <div className="input-group">
+              <label>Starting Location</label>
+              <select value={startStopId} onChange={(e) => setStartStopId(e.target.value)}>
+                <option value="">-- Select Start Stop --</option>
+                {stops.map(stop => (
+                    <option key={`start-${stop.stopId}`} value={stop.stopId}>
+                      {stop.routeName}
+                    </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="input-group">
+              <label>Destination</label>
+              <select value={endStopId} onChange={(e) => setEndStopId(e.target.value)}>
+                <option value="">-- Select Destination --</option>
+                {stops.map(stop => (
+                    <option key={`end-${stop.stopId}`} value={stop.stopId}>
+                      {stop.routeName}
+                    </option>
+                ))}
+              </select>
+            </div>
+
+            {polylinePositions.length > 0 && (
+                <div style={{marginTop: '20px', padding: '15px', backgroundColor: '#e2f0d9', borderRadius: '5px'}}>
+                  <strong>Route Found!</strong><br/>
+                  {polylinePositions.length} stops on your journey.
+                </div>
+            )}
+          </div>
+
+          {/* RIGHT SIDEBAR: The Map */}
+          <MapContainer center={mapCenter} zoom={13} className="map-container">
+            <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+
+            {/* Draws the thick highlighted route between the selected stops */}
+            {polylinePositions.length > 0 && (
+                <Polyline
+                    positions={polylinePositions}
+                    color="#FF4500"
+                    weight={6}
+                    opacity={0.8}
+                />
+            )}
+
+            {stops.map((stop) => (
+                <CircleMarker
+                    key={stop.stopId}
+                    center={[parseFloat(stop.lon), parseFloat(stop.lat)]}
+                    radius={5}
+                    pathOptions={{ color: '#0055ff', fillColor: '#0055ff', fillOpacity: 0.8 }}
+                >
+                  <Popup>{stop.routeName} (Stop #{stop.stopOrder})</Popup>
+                </CircleMarker>
+            ))}
+
+            {busLocation && (
+                <Marker position={[parseFloat(busLocation.lon), parseFloat(busLocation.lat)]}>
+                  <Popup>
+                    <strong>Bus: {busLocation.busId}</strong><br/>
+                    Next Stop: {busLocation.nextStop}
+                  </Popup>
+                </Marker>
+            )}
+          </MapContainer>
+        </div>
       </div>
   );
 }
