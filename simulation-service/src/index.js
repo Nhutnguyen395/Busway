@@ -1,7 +1,6 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import axios from 'axios';
 import cors from 'cors';
 
 const app = express();
@@ -17,51 +16,67 @@ function lerp(start, end, progress){
     return start + (end - start) * progress;
 }
 
-async function startSimulation() {
-    try {
-        const response = await axios.get('http://localhost:8080/api/v1/transit/routes/43');
-        const stops = response.data.stops;
+const activeSimulations = new Map();
+
+io.on('connection', (socket) => {
+    console.log(`New user connected! Socket ID: ${socket.id}`);
+
+    socket.on('startJourney', (customRoute) => {
+        console.log(`Starting custom journey for ${socket.id} with ${customRoute.length}`);
+
+        if (activeSimulations.has(socket.id)) {
+            clearInterval(activeSimulations.get(socket.id));
+        }
+
+        if (!customRoute || customRoute.length < 2) return;
 
         let currentStopIndex = 0;
         let progress = 0.0;
 
-        setInterval(() => {
-            const currentStop = stops[currentStopIndex];
-            const nextStop = stops[(currentStopIndex + 1) % stops.length];
+        const intervalId = setInterval(() => {
+            if (currentStopIndex >= customRoute.length - 1){
+                socket.emit('journeyComplete', {message: 'You have arrived at your destination!'});
+                clearInterval(intervalId);
+                activeSimulations.delete(socket.id);
+                console.log(`Journey complete for ${socket.id}`);
+                return;
+            }
+
+            const currentStop = customRoute[currentStopIndex];
+            const nextStop = customRoute[currentStopIndex + 1];
 
             const currentLat = lerp(currentStop.lat, nextStop.lat, progress);
             const currentLon = lerp(currentStop.lon, nextStop.lon, progress);
 
-            const busData = {
-                busId: 'bus_red_001',
-                routeId: 'route_red',
+            const safeStopName = nextStop.routeName;
+
+            // only use socket.emit to only emit to THIS user instead of everyone
+            socket.emit('busLocationUpdate', {
+                busId: `bus_${socket.id.substring(0,4)}`,
                 lat: currentLat,
                 lon: currentLon,
-                nextStop: nextStop.routeName
-            };
+                nextStop: safeStopName
+            });
 
-            io.emit('busLocationUpdate', busData);
-            console.log(`Broadcasting: Bus at ${currentLat.toFixed(5)}, ${currentLon.toFixed(5)} -> Heading to ${nextStop.routeName}`);
-
-            // Move the bus by 10% every second
             progress += 0.1;
-            if (progress >= 1.0) {
+            if (progress >= 1.0){
                 progress = 0.0;
-                currentStopIndex = (currentStopIndex + 1) % stops.length;
+                currentStopIndex++;
             }
         }, 1000);
-    } catch (error) {
-        console.error("Simulation failed to start");
-        console.error(error.message);
-    }
-}
+        activeSimulations.set(socket.id, intervalId);
+    });
 
-io.on('connection', (socket) => {
-    console.log(`New user connected to live map! Socket ID: ${socket.id}`)
+    socket.on('disconnect', () => {
+        console.log(`User disconnected: ${socket.id}`);
+        if (activeSimulations.has(socket.id)) {
+            clearInterval(activeSimulations.get(socket.id));
+            activeSimulations.delete(socket.id);
+        }
+    });
 });
 
 const PORT = 3001;
 httpServer.listen(PORT, () => {
     console.log(`Simulation Service running on port ${PORT}`);
-    startSimulation();
 });
