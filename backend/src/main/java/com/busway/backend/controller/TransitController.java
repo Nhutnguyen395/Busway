@@ -1,5 +1,6 @@
 package com.busway.backend.controller;
 
+import com.busway.backend.dto.PathStopDto;
 import com.busway.backend.dto.RouteDetailsDto;
 import com.busway.backend.dto.RouteSummaryDto;
 import com.busway.backend.service.TransitService;
@@ -37,10 +38,10 @@ public class TransitController {
     }
 
     @GetMapping("/navigate")
-    public ResponseEntity<List<String>> navigate(
+    public ResponseEntity<List<PathStopDto>> navigate(
             @RequestParam String startStopId,
             @RequestParam String endStopId) {
-        List<String> optimalPathIds = routingEngineService.calculateShortestPath(startStopId, endStopId);
-        return ResponseEntity.ok(optimalPathIds);
+        List<PathStopDto> optimalPath = routingEngineService.getDetailedPath(startStopId, endStopId);
+        return ResponseEntity.ok(optimalPath);
     }
 }

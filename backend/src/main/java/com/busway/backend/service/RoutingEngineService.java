@@ -1,5 +1,6 @@
 package com.busway.backend.service;
 
+import com.busway.backend.dto.PathStopDto;
 import com.busway.backend.graph.Edge;
 import com.busway.backend.graph.Node;
 import jakarta.annotation.PostConstruct;
@@ -147,5 +148,29 @@ public class RoutingEngineService {
 
         Collections.reverse(path); // reverse because it is backtracked from end to start
         return path;
+    }
+
+    public List<PathStopDto> getDetailedPath(String startStopId, String endStopId) {
+        // 1. Get the IDs
+        List<String> pathIds = calculateShortestPath(startStopId, endStopId);
+
+        if (pathIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 2. Convert the IDs into Coordinates Objects for the map
+        List<PathStopDto> detailedPath = new ArrayList<>();
+        String sql = "SELECT id, name, latitude, longitude FROM stops WHERE id = ?";
+        for (String id : pathIds) {
+            jdbcTemplate.query(sql, rs -> {
+                detailedPath.add(new PathStopDto (
+                        rs.getString("id"),
+                        rs.getString("name"),
+                        rs.getDouble("latitude"),
+                        rs.getDouble("longitude")
+                ));
+            }, id);
+        }
+        return detailedPath;
     }
 }
