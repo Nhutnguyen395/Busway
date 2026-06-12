@@ -1,6 +1,6 @@
 package com.busway.backend.service;
 
-import com.busway.backend.dto. RouteDetailsDto;
+import com.busway.backend.dto.RouteDetailsDto;
 import com.busway.backend.entity.Route;
 import com.busway.backend.entity.RouteStop;
 import com.busway.backend.entity.Stop;
@@ -8,6 +8,8 @@ import com.busway.backend.repository.RouteRepository;
 import com.busway.backend.repository.RouteStopRepository;
 import com.busway.backend.repository.StopRepository;
 import org.springframework.stereotype.Service;
+import com.busway.backend.dto.RouteSummaryDto;
+import java.util.stream.Collectors;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,5 +69,15 @@ public class TransitService {
                 route.getColorHex(),
                 stopSummaries
         );
+    }
+
+    public List<RouteSummaryDto> getAllRoutes() {
+        return routeRepository.findAll().stream()
+                .map(route -> new RouteSummaryDto(
+                        route.getId(),
+                        route.getName(),
+                        route.getColorHex()
+                ))
+                .collect(Collectors.toList());
     }
 }
