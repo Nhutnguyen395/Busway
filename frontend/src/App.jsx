@@ -18,10 +18,6 @@ L.Icon.Default.mergeOptions({
 function App() {
   const [routes, setRoutes] = useState([]);
 
-  // Shape State
-  const [startShape, setStartShape] = useState([]);
-  const [endShape, setEndShape] = useState([]);
-
   // Independent State for departure
   const [startRouteId, setStartRouteId] = useState("");
   const [startRouteStops, setStartRouteStops] = useState([]);
@@ -35,6 +31,8 @@ function App() {
   // The Path returned from Java's Routing Engine
   const [optimalPath, setOptimalPath] = useState([]);
   const [busLocation, setBusLocation] = useState(null);
+
+  const [curvedStreetPath, setCurveStreetPath] = useState([]);
 
   // Use a Ref to hold the socket so the button can talk to it
   const socketRef = useRef(null);
@@ -75,23 +73,33 @@ function App() {
     if (!startStopId || !endStopId) return;
     try {
       const response = await axios.get(`http://localhost:8080/api/v1/transit/navigate?startStopId=${startStopId}&endStopId=${endStopId}`);
-      if (response.data.length === 0){
+      const pathStops = response.data;
+
+      if (pathStops.length === 0){
         alert("No route found between these locations");
         return;
       }
       setOptimalPath(response.data);
 
-      // Fetch the high-res street shape
-      if (startRouteId) {
-        const startRes = await axios.get(`http://localhost:8080/api/v1/transit/shapes/${startRouteId}`);
-        setStartShape(startRes.data);
+      // Prepare data for ORSM
+      let waypoints = pathStops;
+      if (pathStops.length > 50){
+        waypoints = pathStops.filter((_, idx) => idx % Math.ceil(pathStops.length / 50) === 0);
       }
-      if (endRouteId && endRouteId !== startRouteId) {
-        const endRes = await axios.get(`http://localhost:8080/api/v1/transit/shapes/${endRouteId}`);
-        setEndShape(endRes.data);
-      } else {
-        setEndShape([]);
+      if (waypoints[waypoints.length - 1].stopId !== pathStops[pathStops.length - 1].stopId){
+        waypoints.push(pathStops[pathStops.length - 1]);
       }
+
+      // Build the url. ORSM expects: longitude,latitude;longitude,latitude
+      // Reminder: Database stops are reversed! stop.lat = Longitude, stop.lon = Latitude
+      const coordString = waypoints.map(s => `${s.lat},${s.lon}`).join(';');
+
+      // Fetch the real street shapes from OSRM
+      const osrmRes = await axios.get(`https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson`);
+
+      // OSRM returns GeoJson [lon, lat] but leaflet needs [lat, lon] so we swap them
+      const geoJsonCoords = osrmRes.data.routes[0].geometry.coordinates;
+      setCurveStreetPath(geoJsonCoords.map(c => [c[1], c[0]]));
     } catch (error) {
       console.log("Routing error:", error);
     }
@@ -102,8 +110,6 @@ function App() {
       socketRef.current.emit('startJourney', optimalPath);
     }
   };
-
-  const polylinePositions = optimalPath.map(stop => [stop.lon, stop.lat]);
 
   return (
       <div>
@@ -180,9 +186,9 @@ function App() {
             />
 
             {/* Draws the thick highlighted route between the selected stops */}
-            {polylinePositions.length > 0 && (
+            {curvedStreetPath.length > 0 && (
                 <Polyline
-                    positions={polylinePositions}
+                    positions={curvedStreetPath}
                     color="#FF4500"
                     weight={6}
                     opacity={0.8}
