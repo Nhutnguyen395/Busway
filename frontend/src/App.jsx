@@ -18,6 +18,10 @@ L.Icon.Default.mergeOptions({
 function App() {
   const [routes, setRoutes] = useState([]);
 
+  // Shape State
+  const [startShape, setStartShape] = useState([]);
+  const [endShape, setEndShape] = useState([]);
+
   // Independent State for departure
   const [startRouteId, setStartRouteId] = useState("");
   const [startRouteStops, setStartRouteStops] = useState([]);
@@ -69,13 +73,24 @@ function App() {
   // Routing Engine Trigger
   const calculateRoute = async () => {
     if (!startStopId || !endStopId) return;
-
     try {
       const response = await axios.get(`http://localhost:8080/api/v1/transit/navigate?startStopId=${startStopId}&endStopId=${endStopId}`);
       if (response.data.length === 0){
         alert("No route found between these locations");
+        return;
+      }
+      setOptimalPath(response.data);
+
+      // Fetch the high-res street shape
+      if (startRouteId) {
+        const startRes = await axios.get(`http://localhost:8080/api/v1/transit/shapes/${startRouteId}`);
+        setStartShape(startRes.data);
+      }
+      if (endRouteId && endRouteId !== startRouteId) {
+        const endRes = await axios.get(`http://localhost:8080/api/v1/transit/shapes/${endRouteId}`);
+        setEndShape(endRes.data);
       } else {
-        setOptimalPath(response.data);
+        setEndShape([]);
       }
     } catch (error) {
       console.log("Routing error:", error);
