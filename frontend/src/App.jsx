@@ -15,6 +15,17 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow
 });
 
+function FitBounds({ path }){
+  const map = useMap();
+  useEffect(() => {
+    if (path && path.length > 0) {
+      const bounds = path.map(stop => [stop.lon, stop.lat]);
+      map.fitBounds(bounds, {padding: [50, 50]});
+    }
+  }, [path, map]);
+  return null;
+}
+
 function App() {
   const [routes, setRoutes] = useState([]);
 
@@ -184,6 +195,8 @@ function App() {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
+
+            <FitBounds path={optimalPath}/>
 
             {/* Draws the thick highlighted route between the selected stops */}
             {curvedStreetPath.length > 0 && (
