@@ -51,11 +51,11 @@ function App() {
 
   // 1. Initial Load
   useEffect(() => {
-    axios.get('http://localhost:8080/api/v1/transit/routes')
+    axios.get('https://busway-backend-engine.onrender.com/api/v1/transit/routes')
         .then(res => setRoutes(res.data))
         .catch(res => console.error(err));
 
-    socketRef.current = io('http://localhost:3001');
+    socketRef.current = io('https://transit-simulator-engine.onrender.com');
     socketRef.current.on('busLocationUpdate', (data) => setBusLocation(data));
     socketRef.current.on('journeyComplete', (data) => {
       alert(data.message);
@@ -68,14 +68,14 @@ function App() {
   // 2. Fetch Departure Stops
   useEffect(() => {
     if (!startRouteId) return setStartRouteStops([]);
-    axios.get(`http://localhost:8080/api/v1/transit/routes/${startRouteId}`)
+    axios.get(`https://busway-backend-engine.onrender.com/api/v1/transit/routes/${startRouteId}`)
         .then(res => setStartRouteStops(res.data.stops));
   }, [startRouteId]);
 
   // 3. Fetch Arrival Stops
   useEffect(() => {
     if (!endRouteId) return setEndRouteStops([]);
-    axios.get(`http://localhost:8080/api/v1/transit/routes/${endRouteId}`)
+    axios.get(`https://busway-backend-engine.onrender.com/api/v1/transit/routes/${endRouteId}`)
         .then(res => setEndRouteStops(res.data.stops));
   }, [endRouteId]);
 
@@ -83,7 +83,7 @@ function App() {
   const calculateRoute = async () => {
     if (!startStopId || !endStopId) return;
     try {
-      const response = await axios.get(`http://localhost:8080/api/v1/transit/navigate?startStopId=${startStopId}&endStopId=${endStopId}`);
+      const response = await axios.get(`https://busway-backend-engine.onrender.com/api/v1/transit/navigate?startStopId=${startStopId}&endStopId=${endStopId}`);
       const pathStops = response.data;
 
       if (pathStops.length === 0){
