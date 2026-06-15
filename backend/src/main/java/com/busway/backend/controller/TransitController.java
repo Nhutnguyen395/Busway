@@ -44,9 +44,4 @@ public class TransitController {
         List<PathStopDto> optimalPath = routingEngineService.getDetailedPath(startStopId, endStopId);
         return ResponseEntity.ok(optimalPath);
     }
-
-    @GetMapping("/shapes/{routeId}")
-    public ResponseEntity<List<double[]>> getRouteShape(@PathVariable String routeId){
-        return ResponseEntity.ok(routingEngineService.getRouteShape(routeId));
-    }
 }

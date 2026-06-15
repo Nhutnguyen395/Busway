@@ -173,12 +173,4 @@ public class RoutingEngineService {
         }
         return detailedPath;
     }
-
-    public List<double[]> getRouteShape(String routeId){
-        String sql = "SELECT lat, lon FROM route_shapes WHERE route_id = ? ORDER BY sequence_order";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new double[]{
-                rs.getDouble("lat"),
-                rs.getDouble("lon")
-        }, routeId);
-    }
 }
