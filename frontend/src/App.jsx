@@ -118,7 +118,10 @@ function App() {
 
   const startSimulation = () => {
     if (optimalPath.length > 1 && socketRef.current) {
-      socketRef.current.emit('startJourney', optimalPath);
+      socketRef.current.emit('startJourney', {
+        curve: curvedStreetPath,
+        stops: optimalPath
+      });
     }
   };
 
