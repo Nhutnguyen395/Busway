@@ -25,7 +25,7 @@ io.on('connection', (socket) => {
         const routeCoords = payload.curve || [];
         const stops = payload.stops || [];
 
-        console.log(`Starting custom journey for ${socket.id} with ${customRoute.length}`);
+        console.log(`Starting custom journey for ${socket.id} with ${routeCoords.length} path points.`);
 
         if (activeSimulations.has(socket.id)) {
             clearInterval(activeSimulations.get(socket.id));
