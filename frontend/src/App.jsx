@@ -53,7 +53,7 @@ function App() {
   useEffect(() => {
     axios.get('https://busway-backend-engine.onrender.com/api/v1/transit/routes')
         .then(res => setRoutes(res.data))
-        .catch(res => console.error(err));
+        .catch(err => console.error(err));
 
     socketRef.current = io('https://transit-simulator-engine.onrender.com');
     socketRef.current.on('busLocationUpdate', (data) => setBusLocation(data));
