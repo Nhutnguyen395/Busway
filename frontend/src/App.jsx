@@ -223,7 +223,7 @@ function App() {
             ))}
 
             {busLocation && (
-                <Marker position={[busLocation.lon, busLocation.lat]}>
+                <Marker position={[busLocation.lat, busLocation.lon]}>
                   <Popup>
                     <strong>Bus: {busLocation.busId}</strong><br/>
                     Next Stop: {busLocation.nextStop}

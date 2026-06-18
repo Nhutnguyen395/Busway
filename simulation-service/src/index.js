@@ -60,10 +60,14 @@ io.on('connection', (socket) => {
             if (stops && stops[currentStopIndex]) {
                 targetStopName = stops[currentStopIndex].stopName;
 
-                // Math Trick: If the bus gets extremely close to the target stop,
-                // increment the index so the dashboard text changes to the NEXT stop!
-                const distToStop = Math.pow(currentLat - stops[currentStopIndex].lat, 2) + Math.pow(currentLon - stops[currentStopIndex].lon, 2);
-                if (distToStop < 0.00002 && currentStopIndex < stops.length - 1) {
+                const stopTrueLat = stops[currentStopIndex].lon;
+                const stopTrueLon = stops[currentStopIndex].lat;
+
+                const distToStop = Math.pow(currentLat - stopTrueLat, 2) + Math.pow(currentLon - stopTrueLon, 2);
+
+                // If we get extremely close to the target stop, increment the index!
+                // (Note: We slightly increased the threshold to 0.00005 to ensure the bus "hits" the stop zone even on wide streets)
+                if (distToStop < 0.00005 && currentStopIndex < stops.length - 1) {
                     currentStopIndex++;
                 }
             }
