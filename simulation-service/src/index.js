@@ -63,11 +63,17 @@ io.on('connection', (socket) => {
                 const stopTrueLat = stops[currentStopIndex].lon;
                 const stopTrueLon = stops[currentStopIndex].lat;
 
-                const distToStop = Math.pow(currentLat - stopTrueLat, 2) + Math.pow(currentLon - stopTrueLon, 2);
+                // Math Trick: Calculate the true Euclidean distance in decimal degrees
+                const degreeDistance = Math.sqrt(
+                    Math.pow(currentLat - stopTrueLat, 2) +
+                    Math.pow(currentLon - stopTrueLon, 2)
+                );
 
-                // If we get extremely close to the target stop, increment the index!
-                // (Note: We slightly increased the threshold to 0.00005 to ensure the bus "hits" the stop zone even on wide streets)
-                if (distToStop < 0.00005 && currentStopIndex < stops.length - 1) {
+                // Convert degrees to physical meters (1 degree is roughly 111,000 meters)
+                const distanceInMeters = degreeDistance * 111000;
+
+                // If the bus is within 25 meters of the stop, increment the index!
+                if (distanceInMeters < 25 && currentStopIndex < stops.length - 1) {
                     currentStopIndex++;
                 }
             }
